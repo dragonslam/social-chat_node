@@ -1,0 +1,305 @@
+
+<html>
+<head>
+<title>G! Social Chat ~~</title>
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css">
+<script src="http://code.jquery.com/jquery-1.8.3.js"></script>
+<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+function socialChat (
+    			panelChatMsg, panelLogMsg, 
+				panelUserName, txtUserName, 
+				txtChatMsg, txtSelectUser, 
+				btnSend, btnSelect, btnConnect, btnDisconnect
+) {
+	
+	this.isDebug	= true;
+	this.serverUri	= "http://localhost:8080";
+	this.socket		=	undefined;
+	this.panel_ChatMsg	= undefined;
+	this.panel_LogMsg	= undefined;
+	this.panel_UserName	= undefined;;
+	this.txt_ChatMsg		= undefined;
+	this.txt_UserName	= undefined;
+	this.txt_SelectUser	= undefined;
+	this.btn_Send			= undefined;
+	this.btn_Select		= undefined;
+	this.btn_Connect		= undefined;
+
+	this.panel_ChatMsg	= this.getObject(panelChatMsg);
+	this.panel_LogMsg	= this.getObject(panelLogMsg);
+	this.panel_UserName	= this.getObject(panelUserName);
+	this.txt_ChatMsg		= this.getObject(txtChatMsg);
+	this.txt_UserName	= this.getObject(txtUserName);
+	this.txt_SelectUser	= this.getObject(txtSelectUser);
+	this.btn_Send			= this.getObject(btnSend);
+	this.btn_Select		= this.getObject(btnSelect);
+	this.btn_Connect		= this.getObject(btnConnect);
+	this.btn_Disconnect	= this.getObject(btnDisconnect);
+
+	this.logging("Social Chat. initialize start.");
+	this.initializeUI();
+	
+
+	if (typeof(io) != "object") {
+		this.appendMsg("Not Found 'Node.js' module in 'spcked.io'.");
+		this.logging("Not Found 'Node.js' module in 'spcked.io'.");
+	} else {
+		this.initializeEvent();
+	}
+
+	this.logging("Sccial Chat. initialize complete.");
+}
+socialChat.prototype.IIF	= function(exp, val, defaultValue) {
+	return (typeof(exp) == "boolean" && exp) ? val : defaultValue;
+}
+socialChat.prototype.getObject	= function(obj, defaultValue) {
+	return this.IIF((typeof(obj) == "object"), obj, (defaultValue ? defaultValue : null));
+}
+socialChat.prototype.getString	= function(str, defaultValue) {
+	return this.IIF((typeof(str) == "string"), str, (defaultValue ? defaultValue : ""));
+}
+socialChat.prototype.showObject	= function(obj, isShow) {	
+	this.logging("showObject("+ this.getName(obj) +", "+ isShow +")");
+	if (typeof(obj) == "object" && typeof(obj.show) == "function") {
+		if (isShow)
+			obj.show();
+		else
+			obj.hide();
+	}
+}
+socialChat.prototype.getName = function(obj) {
+	if (typeof(obj) == "object" && typeof(obj.attr) == "function") 	
+		return obj.attr("id");
+	else
+		return null;
+}
+socialChat.prototype.setValue = function(obj, value) {
+	if (obj != null)
+		obj.val(value);
+}
+socialChat.prototype.append = function(obj, msg) {
+	if (obj != null) {
+		obj.append(msg + "<br>");
+	}
+}
+socialChat.prototype.appendMsg = function(msg, isLogging) {
+	if (typeof(isLogging) == "boolean" && isLogging == true){
+		this.logging(msg);
+		this.append(this.panel_ChatMsg, (msg ? ("<span style='color:#3333EA;'>"+msg+"</span>") : ""));
+	} else {
+		this.append(this.panel_ChatMsg, (msg ? msg : ""));
+	}	
+	this.panelScrolling(this.panel_ChatMsg);
+}
+socialChat.prototype.logging	= function(msg) {
+	
+	if (this.isDebug && window.console) {
+		window.console.log(msg);
+	}
+	this.append(this.panel_LogMsg, (msg ? msg : ""));
+	this.panelScrolling(this.panel_LogMsg);
+}
+socialChat.prototype.send = function(cmd, arg1, arg2) {
+	if (this.socket) {
+		this.socket.emit(cmd, arg1, arg2);
+	}
+}
+socialChat.prototype.panelScrolling = function(obj) {
+	var panel = document.getElementById(obj.attr("id"));
+	if (panel)	
+		panel.scrollTop = panel.scrollHeight;
+}
+
+socialChat.prototype.initializeUI = function() {
+	this.showObject(this.btn_Connect, true);
+	this.showObject(this.btn_Disconnect, false);
+
+	this.logging("Sccial Chat. initializeUI complete.");
+}
+socialChat.prototype.initializeEvent = function() {
+	var THIS = this;
+
+	if (this.btn_Connect) {
+		this.btn_Connect.click(function(e) {
+			THIS.connect();
+		});
+	}
+	if (this.btn_Disconnect) {
+		this.btn_Disconnect.click(function() {	
+			THIS.disconnect();
+		});
+	}
+
+	if (this.txt_UserName) {
+		this.txt_UserName.keypress(function(e) {				
+			if(e.which == 13 && $(this).val() != "") {
+				THIS.connect();
+			}
+		});
+	}
+	
+	if (this.btn_Send) {
+		this.btn_Send.click(function() {
+			var msg = "";
+			if (THIS.txt_ChatMsg) {
+				msg = THIS.txt_ChatMsg.val();
+				THIS.txt_ChatMsg.val("");
+			}	
+			THIS.send("sendchat", msg);
+		});
+	}
+	if (this.txt_ChatMsg) {
+		this.txt_ChatMsg.keypress(function(e) {	
+			if(e.which == 13 && $(this).val() != "") {
+				THIS.btn_Send.click();
+			}
+		});
+	}
+
+	if (this.btn_Select) {
+		this.btn_Select.click(function() {	
+			var selectUser	= "";
+			var targrtUser	= "";
+
+			if (THIS.txt_SelectUser) 
+				selectUser = THIS.txt_SelectUser.val();
+			
+			if (THIS.txt_UserName) {
+				targrtUser = THIS.txt_UserName.val();
+				THIS.txt_UserName.val("");
+			}
+			THIS.send("sendsecretchat", selectUser, targrtUser);
+		});
+	}
+
+	this.logging("Sccial Chat. initializeEvent complete.");
+}
+
+socialChat.prototype.connect = function() {
+	var THIS = this;
+
+	if (typeof(this.socket) == "object") {
+		this.logging("Is already connected. socket is "+ typeof(this.socket) +".");
+		return;
+	}
+
+	this.logging( "Try connecting.");
+	this.socket = io.connect(this.serverUri, {'force new connection': true } );
+	
+	// 서버에 연결되면 연결 메시지 보여줌
+	this.socket.on('connect', function(){							
+		THIS.appendMsg( "connected server.", true);	
+		THIS.socket.emit("adduser", THIS.txt_UserName.val() );
+	});
+
+	this.socket.on('checkvalidation', function (result) {		
+		if(result == "-1") 
+			THIS.logging( "'socket.io' event on 'checkvalidation'. Already Exists server.");	
+
+		THIS.showObject(THIS.btn_Disconnect, false);
+		THIS.showObject(THIS.btn_Connect, true);
+		
+		THIS.socket.removeAllListeners();			
+		THIS.socket.disconnect();
+	});
+	
+	this.socket.on('updateusers', function (data) {					
+		THIS.logging("updateUsers - " + data.peers[data.peers.length-1].name);
+
+		THIS.panel_UserName.html("");		
+		for(i=0;i<data.peers.length;i++){ 
+			THIS.append(THIS.panel_UserName, data.peers[i].name);
+		}
+	});		
+	
+	this.socket.on('updatechat', function (data) {	
+		THIS.logging( "updateChat :" +  data);	
+		THIS.appendMsg( data);		
+	});		
+	
+	this.socket.on("disconnect" , function () {	
+		THIS.logging( "disconnected server." );
+		THIS.panel_UserName.html("");		
+		THIS.socket = undefined;
+	});
+
+	this.showObject(this.btn_Connect, false);
+	this.showObject(this.btn_Disconnect, true);
+}
+socialChat.prototype.disconnect = function() {
+	this.appendMsg( "disconnected server.", true);	
+	this.showObject(this.btn_Disconnect, false);
+	this.showObject(this.btn_Connect, true);
+
+	if (this.socket)
+		this.socket.disconnect();
+}
+
+
+var objChat = null;
+$(function(){
+	objChat = new socialChat(
+		  $("#panelChatMsg")	// panelChatMsg
+		, $("#panel_LogMsg")	// panelLogMsg
+		, $("#idPeers")				// panelUserName
+		, $("#idName")				// txtUserName
+		, $("#idChat")				// txtChatMsg
+		, $("#idSecretChat")		// txtSelectUser
+		, $("#idBtnChat")			// btnSend
+		, $("#idBtnSecretChat")	// btnSelect
+		, $("#btnConnect")		// btnConnect
+		, $("#btnDisconnect")	// btnDisconnect
+	);
+});
+</script>
+
+<style>
+	body { font-family: "굴림체"; font-size: 9pt; }
+</style>
+</head>
+<body>
+<div id="idDisconnectionPanel" >
+	Welcome!!!
+	<br><br>	
+	대화명 : 
+		<input id="idName" style="width:200px;"/> 
+		<button id="btnConnect" > Connect </button>	
+</div>
+
+<hr><br>
+<div id="idConnectionPanel" data-role="content">	
+	<div style="float:left;width:100px;border-right:1px solid black;height:300px;padding:10px;">		
+		<b>USERS</b><br/>
+		<div id="idPeers" style="height:250px;overflow-x:hidden;overflow-y:auto;border:solid 1px #eaeaea;padding:3px;"></div>
+	</div>
+	
+	<div style="width:500px;height:300px;padding:10px;border:1px solid #eaeaea;">
+		<div>
+			<b>Chatting History</b> 
+			<span style="width:260px;"></span>
+			<button id="btnDisconnect"> Disconnect </button>		
+			<br><br>
+		</div>
+		<div id="panelChatMsg" style="background:#eeeeee; border:1px solid #eeeeef; height:180px;overflow-x:hidden;overflow-y:auto;padding:3px;" >
+		</div>
+		<div>
+			<input id="idChat" style="width:420px;height:24px;border:1px solid #eaeaef;" /> &nbsp;&nbsp;
+			<button id="idBtnChat" > Chat </button> <br/>
+			UserID : <input id="idSecretChat" style="width:200px;border:1px solid #eaeaef;" /> &nbsp;&nbsp;
+			<button id="idBtnSecretChat" > SecretChat </button> 
+		</div>
+	</div>	
+<br/>
+<br/>
+</div>
+
+<hr>
+<div id="panel_Log">
+	Logs
+	<div id="panel_LogMsg" style="position:relative;background:#eeeeee;height:150px;overflow-x:hidden;overflow-y:scroll;padding:5px;"> </div>
+</div>
+</body>
+</html> 
