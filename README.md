@@ -1,4 +1,4 @@
-sample_repository
+social-chat_node
 =================
 
-처음 만들어 봅니다..  신경쓰지 말아 주세요.
+Node.js를 이용해 Chatting을 구현해 보렵니다. 
