@@ -1,42 +1,33 @@
 
 <html>
 <head>
-<title>G! Social Chat ~~</title>
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css">
-<script src="http://code.jquery.com/jquery-1.8.3.js"></script>
-<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+<title>Node.js - Social Chat.!!</title>
+
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/jquery-1.8.3.js"></script>
+<script src="https://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 
 <script>
 function socialChat (
-    			panelChatMsg, panelLogMsg, 
-				panelUserName, txtUserName, 
-				txtChatMsg, txtSelectUser, 
-				btnSend, btnSelect, btnConnect, btnDisconnect
+	panelChatMsg, panelLogMsg, panelUserName, 
+	txtUserName, txtChatMsg, txtSelectUser, 
+	btnSend, btnSelect, btnConnect, btnDisconnect
 ) {
 	
-	this.isDebug	= true;
-	this.serverUri	= "http://localhost:8080";
-	this.socket		=	undefined;
-	this.panel_ChatMsg	= undefined;
-	this.panel_LogMsg	= undefined;
-	this.panel_UserName	= undefined;;
-	this.txt_ChatMsg		= undefined;
-	this.txt_UserName	= undefined;
-	this.txt_SelectUser	= undefined;
-	this.btn_Send			= undefined;
-	this.btn_Select		= undefined;
-	this.btn_Connect		= undefined;
+	this.isDebug		= true;
+	this.serverUri		= "https://social-chat-node-dragonslam.c9.io";
+	this.socket			= undefined;
 
 	this.panel_ChatMsg	= this.getObject(panelChatMsg);
 	this.panel_LogMsg	= this.getObject(panelLogMsg);
 	this.panel_UserName	= this.getObject(panelUserName);
-	this.txt_ChatMsg		= this.getObject(txtChatMsg);
+	this.txt_ChatMsg	= this.getObject(txtChatMsg);
 	this.txt_UserName	= this.getObject(txtUserName);
 	this.txt_SelectUser	= this.getObject(txtSelectUser);
-	this.btn_Send			= this.getObject(btnSend);
+	this.btn_Send		= this.getObject(btnSend);
 	this.btn_Select		= this.getObject(btnSelect);
-	this.btn_Connect		= this.getObject(btnConnect);
+	this.btn_Connect	= this.getObject(btnConnect);
 	this.btn_Disconnect	= this.getObject(btnDisconnect);
 
 	this.logging("Social Chat. initialize start.");
@@ -50,7 +41,7 @@ function socialChat (
 		this.initializeEvent();
 	}
 
-	this.logging("Sccial Chat. initialize complete.");
+	this.logging("Social Chat. initialize complete.");
 }
 socialChat.prototype.IIF	= function(exp, val, defaultValue) {
 	return (typeof(exp) == "boolean" && exp) ? val : defaultValue;
@@ -63,7 +54,7 @@ socialChat.prototype.getString	= function(str, defaultValue) {
 }
 socialChat.prototype.showObject	= function(obj, isShow) {	
 	this.logging("showObject("+ this.getName(obj) +", "+ isShow +")");
-	if (typeof(obj) == "object" && typeof(obj.show) == "function") {
+	if (obj instanceof jQuery) {
 		if (isShow)
 			obj.show();
 		else
@@ -71,18 +62,18 @@ socialChat.prototype.showObject	= function(obj, isShow) {
 	}
 }
 socialChat.prototype.getName = function(obj) {
-	if (typeof(obj) == "object" && typeof(obj.attr) == "function") 	
+	if (obj instanceof jQuery) 	
 		return obj.attr("id");
 	else
 		return null;
 }
 socialChat.prototype.setValue = function(obj, value) {
-	if (obj != null)
+	if (obj instanceof jQuery)
 		obj.val(value);
 }
 socialChat.prototype.append = function(obj, msg) {
-	if (obj != null) {
-		obj.append(msg + "<br>");
+	if (obj instanceof jQuery) {
+		obj.append(msg + "<br/>");
 	}
 }
 socialChat.prototype.appendMsg = function(msg, isLogging) {
@@ -94,7 +85,7 @@ socialChat.prototype.appendMsg = function(msg, isLogging) {
 	}	
 	this.panelScrolling(this.panel_ChatMsg);
 }
-socialChat.prototype.logging	= function(msg) {
+socialChat.prototype.logging = function(msg) {
 	
 	if (this.isDebug && window.console) {
 		window.console.log(msg);
@@ -244,11 +235,11 @@ $(function(){
 	objChat = new socialChat(
 		  $("#panelChatMsg")	// panelChatMsg
 		, $("#panel_LogMsg")	// panelLogMsg
-		, $("#idPeers")				// panelUserName
-		, $("#idName")				// txtUserName
-		, $("#idChat")				// txtChatMsg
-		, $("#idSecretChat")		// txtSelectUser
-		, $("#idBtnChat")			// btnSend
+		, $("#idPeers")			// panelUserName
+		, $("#idName")			// txtUserName
+		, $("#idChat")			// txtChatMsg
+		, $("#idSecretChat")	// txtSelectUser
+		, $("#idBtnChat")		// btnSend
 		, $("#idBtnSecretChat")	// btnSelect
 		, $("#btnConnect")		// btnConnect
 		, $("#btnDisconnect")	// btnDisconnect
