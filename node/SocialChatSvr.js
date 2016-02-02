@@ -1,18 +1,19 @@
  
 /*
-     http://localhost:8080	 
+     Node Social Chat Server.
+     
+     by dragonslam
 */	 
-var express	= require('express');
-var sys		= require("sys");
+var express		= require('express');
+var sys			= require("sys");
 var http		= require('http');
 
 var app			= express();
 var server		= http.createServer(app);
-var io				= require('socket.io').listen(server);
-var port			= 8080;
+var io			= require('socket.io').listen(server);
+var port		= 8080;
 var sessions	= null;
 var isDebug		= true;
-
 
 
 io.set('log level',2);
@@ -102,7 +103,6 @@ function Sessions() {
 	
 	this.findByName = function( name ) {		
 		var i;
-				
 		for ( i = 0 ; i < this.list.length ; i++ ) {
 			if ( this.list[i].name == name )  {
 				return this.list[i];
@@ -114,7 +114,6 @@ function Sessions() {
 	
 	this.deleteWithID = function( id ) {		
 		var i;
-				
 		for ( i = 0 ; i <  this.list.length ; i++ ) {
 			if (  this.list[i].id == id ) {			
 				 this.list.splice( i,1 );
@@ -124,7 +123,6 @@ function Sessions() {
 
 	this.delete = function( obj ) {		
 		var i;
-		
 		for ( i = 0 ; i <  this.list.length ; i++ )
 		{
 			if (  this.list[i] == obj ) {
