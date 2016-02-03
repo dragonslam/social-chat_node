@@ -21,52 +21,17 @@
     <!-- bootstrap -->
     <link href="/bootstrap/css/bootstrap.css" rel="stylesheet">
     <link href="/bootstrap/css/bootstrap-theme.css" rel="stylesheet">
-    <script src="/bootstrap/js/bootstrap.js"></script>
     
     <!-- bootstrap-colorpicker -->
     <link href="/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css" rel="stylesheet">
-    <script src="/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.min.js"></script>
-    
-    <script src="/js/common/common.function.js"></script>
-    <script src="/js/common/common.string.js"></script>
-    <script src="/js/common/common.date.js"></script>
-    <script src="/js/drow-canvers/DrawBoard.js"></script>
-    <script src="/js/drow-canvers/GraphicPen.js"></script>
-    <!-- script src="/js/d3/d3.js"></script -->
-    <script src="/js/social-chat.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    
-    <script>
-        var objChat = null;
-        $(function(){
-            objChat = new socialChat(
-                  window
-                , $("#panel_ChatMsg")	// panelChatMsg
-                , $("#panel_LogMsg")	// panelLogMsg
-                , $("#panel_idPeers")	// panelUserName
-                , $("#panel_PointCanvers")
-                , $("#panel_UserPenColor")
-                , $("#panel_UserPoints")
-                , $("#txtUserName")		// txtUserName
-                , $("#txtChatMsg")		// txtChatMsg
-                , $("#txtSelectUser")	// txtSelectUser
-                , $("#btnChatSend")		// btnSend
-                , $("#btnSecretChat")	// btnSelect
-                , $("#btnConnect")		// btnConnect
-                , $("#btnDisconnect")	// btnDisconnect
-                , $("#btnChangeColor")	// btnChangeColor
-                , $("#btnCanversClear")	// btnCanversClear
-            );
-        });
-    </script>
 </head>
 <body>
 <div class="navbar navbar-default navbar-fixed-top">
     <div class="bs-docs-section">
         <div class="row">
             <div class="col-lg-12">
-                <div class="page-header">
-                    <h1 id="typography">Node.js - Social Chat.!!   test </h1>
+                <div class="page-header" style="padding-left:10px;">
+                    <h1 id="typography"><a href="https://github.com/dragonslam/social-chat_node" target="_blank">Node.js - Social Chat.!!</a></h1>
                 </div>
             </div>
         </div>
@@ -93,7 +58,7 @@
                     <h5>User List</h5>
                 </div>
                 <div class="bs-component">
-                    <div style="height:350px;overflow-x:hidden;overflow-y:auto;border:solid 1px #eaeaea;padding:3px;">
+                    <div style="height:350px;overflow-x:hidden;overflow-y:auto;border:solid 1px #acadaf;padding:3px;">
                         <ul class="list-group" id="panel_idPeers">
                             
                         </ul>
@@ -105,7 +70,7 @@
                     <h5>Chat History</h5>
                 </div>
                 <div class="bs-component" style="padding-bottom:10px;">
-                    <div id="panel_ChatMsg" style="padding:5px;background:#eeeeee;border:1px solid #eeeeef;overflow-x:hidden;overflow-y:auto;height:340px;"></div>
+                    <div id="panel_ChatMsg" style="padding:5px;background:#fefefe;border:1px solid #acadaf;overflow-x:hidden;overflow-y:auto;height:340px;"></div>
                 </div>
                 <div class="bs-component">
                     <div class="form-group">
@@ -152,10 +117,75 @@
                 <h5>Log Viewer</h5>
             </div>
             <div class="bs-component">
-                <div id="panel_LogMsg" style="position:relative;background:#eeeeee;height:150px;overflow-x:hidden;overflow-y:scroll;padding:5px;"></div>
+                <div id="panel_LogMsg" style="position:relative;background:#eeeeee;height:120px;overflow-x:hidden;overflow-y:scroll;padding:5px;"></div>
             </div>
         </div>
     </div>
 </div>
+<div id="panel_template" style="display:none;">
+    <li tmpl-id="user-item" session-id='' session-name='' class='list-group-item'>
+	    <span class='color-picker' style='display:inline-block;width:20px;height:20px;background-color:#fff;border:1px solid #000;margin-right:7px;'>&nbsp;</span>
+	    <span class='badge'>0</span>
+	</li>
+	
+    <div tmpl-id="panel-logMsg" class="panel panel-default">
+        <div class="panel-body" style="padding-top:10px;padding-bottom:10px;">Basic panel</div>
+    </div>
+    
+    <div tmpl-id="panel-chatMyMsg" class="panel panel-success">
+        <div class="panel-heading">
+            <h3 class="panel-title">Panel primary</h3>
+        </div>
+        <div class="panel-body" style="padding-top:10px;padding-bottom:10px;">Panel content</div>
+    </div>
+    
+    <div tmpl-id="panel-chatFnMsg" class="panel panel-info" style="text-align:right;">
+        <div class="panel-heading">
+            <h3 class="panel-title">Panel info</h3>
+        </div>
+        <div class="panel-body" style="padding-top:10px;padding-bottom:10px;">Panel content</div>
+    </div>
+    
+    <div tmpl-id="panel-userPoint" style="position:absolute;top:-100px;left:-100px;z-index:100;">
+        <span class="label" style="border:1px solid #fff;"></span>
+    </div>
+</div>
+
+
+<script src="/bootstrap/js/bootstrap.js"></script>
+<script src="/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.min.js"></script>
+<script src="/js/common/common.function.js"></script>
+<script src="/js/common/common.string.js"></script>
+<script src="/js/common/common.date.js"></script>
+<script src="/js/drow-canvers/DrawBoard.js"></script>
+<script src="/js/drow-canvers/GraphicPen.js"></script>
+<!-- script src="/js/d3/d3.js"></script -->
+<script src="/js/social-chat.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+    var objChat = null;
+    $(function(){
+        objChat = new socialChat(
+              window
+            , $("#panel_ChatMsg")	// panelChatMsg
+            , $("#panel_LogMsg")	// panelLogMsg
+            , $("#panel_idPeers")	// panelUserName
+            , $("#panel_PointCanvers")
+            , $("#panel_UserPenColor")
+            , $("#panel_UserPoints")
+            , $("#panel_template")
+            , $("#txtUserName")		// txtUserName
+            , $("#txtChatMsg")		// txtChatMsg
+            , $("#txtSelectUser")	// txtSelectUser
+            , $("#btnChatSend")		// btnSend
+            , $("#btnSecretChat")	// btnSelect
+            , $("#btnConnect")		// btnConnect
+            , $("#btnDisconnect")	// btnDisconnect
+            , $("#btnChangeColor")	// btnChangeColor
+            , $("#btnCanversClear")	// btnCanversClear
+        );
+    });
+</script>
 </body>
 </html> 

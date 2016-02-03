@@ -88,7 +88,7 @@ io.sockets.on('connection', function (socket) {
 	socket.on('send_chat', function (data) {		
 		session.count++;
 		logging("dbug", "[sendMessage]["+ session.count +"] "+ session.id   );
-		io.sockets.emit('update_chat',  session.name +":" + data );
+		io.sockets.emit('update_chat', {user : session, message : data});
 		io.sockets.emit('update_users', {peers: sessions.list} );
 	});
 	

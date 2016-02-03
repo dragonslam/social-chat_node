@@ -1,6 +1,6 @@
 function socialChat (
 	w,
-	panelChatMsg, panelLogMsg, panelUserName, panelCanvasView, panelPenColor, panelUserPoint,
+	panelChatMsg, panelLogMsg, panelUserName, panelCanvasView, panelPenColor, panelUserPoint, panelTemplate,
 	txtUserName, txtChatMsg, txtSelectUser, 
 	btnSend, btnSelect, btnConnect, btnDisconnect,
 	btnChangeColor, btnCanvasClear
@@ -17,7 +17,7 @@ function socialChat (
 	
 	this.isDebug		= true;
 	this.isCon			= false;
-	this.defaultColor	= "#30c7be";
+	this.defaultColor	= "#000000";
 	this.serverUri		= l.protocol + "//" + l.hostname + (p ? ":"+p : "");
 	this.socket			= undefined;
 	this.currentUser	= undefined;
@@ -31,6 +31,7 @@ function socialChat (
 	this.panel_Canvas	= this.getObject(panelCanvasView);
 	this.panel_PenColor	= this.getObject(panelPenColor);
 	this.panel_UserPoint= this.getObject(panelUserPoint);
+	this.panel_Template	= this.getObject(panelTemplate);
 	this.txt_ChatMsg	= this.getObject(txtChatMsg);
 	this.txt_UserName	= this.getObject(txtUserName);
 	this.txt_SelectUser	= this.getObject(txtSelectUser);
@@ -81,7 +82,7 @@ socialChat.prototype = {
 		}
 	},
 	showObject : function(obj, isShow) {	
-		this.logging("showObject("+ this.getName(obj) +", "+ isShow +")");
+		//this.logging("showObject("+ this.getName(obj) +", "+ isShow +")");
 		if (obj instanceof jQuery) {
 			if (isShow)
 				obj.show();
@@ -90,28 +91,54 @@ socialChat.prototype = {
 		}
 	},
 	logging : function(msg) {
-		if (this.isDebug && window.console) {
-			window.console.log(msg);
+		if (typeof msg == "string" && String(msg) != "") {
+			if (this.isDebug && window.console) {
+				window.console.log(msg);
+			}
+			this.append(this.panel_LogMsg, msg +"<br/>");
+			this.panelScrolling(this.panel_LogMsg);
 		}
-		this.append(this.panel_LogMsg, (msg ? msg : ""));
-		this.panelScrolling(this.panel_LogMsg);
 	},
 	append : function(obj, msg) {
 		if (obj instanceof jQuery) {
-			obj.append(msg + "<br/>");
+			obj.append(msg);
 		}
 	},
-	appendMsg : function(msg, isLogging, isShowMessage) {
-		if (typeof(isLogging) == "boolean" && isLogging === true){
-			this.logging(msg);
-			this.append(this.panel_ChatMsg, (msg ? ("<span style='color:#666669;'>"+msg+"</span>") : ""));
-		} else {
-			this.append(this.panel_ChatMsg, (msg ? msg : ""));
+	appendMsg : function(data, isLogging, isShowMessage) {
+		if (typeof data == "object" && !!data.user) {
+			var user	= data.user,
+				msg		= data.message,
+				panel	= this.panel_Template.find("[tmpl-id='panel-chatFnMsg']").clone();
+				
+			if (this.currentUser.id === user.id) {
+				panel	= this.panel_Template.find("[tmpl-id='panel-chatMyMsg']").clone();
+			}
+			
+			panel.find(".panel-title").empty().append(user.name);
+			panel.find(".panel-body").empty().append("<span style='color:"+ user.color +";'>"+msg+"</span>");
+			
+			this.append(this.panel_ChatMsg, panel);
 		}
-		if (typeof(isShowMessage) == "boolean" && isShowMessage === true) {
-			alert(msg);
+		else {
+			
+			if (typeof data == "string" && String(data) != "") {
+				if (typeof(isLogging) == "boolean" && isLogging === true){
+					var panel = this.panel_Template.find("[tmpl-id='panel-logMsg']").clone();
+					panel.find(".panel-body")
+							.empty()
+							.append("<span style='color:#99999f;'>"+data+"</span>");
+					
+					this.append(this.panel_ChatMsg, panel);
+				}
+				if (typeof(isShowMessage) == "boolean" && isShowMessage === true) {
+					alert(msg);
+				}
+			}
 		}
 		this.panelScrolling(this.panel_ChatMsg);
+	},
+	clearChatPanel : function() {
+		this.panel_ChatMsg.empty();
 	},
 	panelScrolling : function(obj) {
 		var panel = document.getElementById(obj.attr("id"));
@@ -199,14 +226,12 @@ socialChat.prototype = {
 	    			if (THIS.currentUser) {
 	    				oPen.option.lineColor = THIS.currentUser.color;
 	    				oPen.moveTo( point );
-	    				
 	    				THIS.send("drow_start", THIS.currentUser);
 	    			}
 	    		},
 	    		onDrowing : function(point) {
 	    			if (THIS.currentUser) {
 	    				oPen.draw( point );
-	    				
 	    				THIS.send("drow_line", THIS.currentUser);
 	    			}
 	    		},
@@ -215,6 +240,7 @@ socialChat.prototype = {
 	    		}
 	    	});
 	    	oBoard.initBoard();
+	    	oBoard.cleanCanvas();
 	    
 	    	// share mouse point.
 	   		THIS.panel_Canvas.mousemove(function(e){
@@ -266,6 +292,7 @@ socialChat.prototype = {
 		// 서버에 연결되면 연결 메시지 보여줌
 		THIS.socket.on('connect', function(){
 			THIS.isCon = true;
+			THIS.clearChatPanel();
 			THIS.appendMsg( "connected server.", true);	
 			THIS.socket.emit("connectuser", THIS.txt_UserName.val() );
 			THIS.txt_UserName.attr("readonly", true);
@@ -285,7 +312,7 @@ socialChat.prototype = {
 		THIS.socket.on('update_users', function (data) {					
 			THIS.logging("update_users - " + data.peers[data.peers.length-1].name);
 	
-			THIS.panel_UserName.html("");		
+			//THIS.panel_UserName.html("");
 			for(var i=0; i<data.peers.length; i++){ 
 				var user = data.peers[i];
 				if (user && user.id) {
@@ -295,7 +322,12 @@ socialChat.prototype = {
 					THIS.showUserList(user);
 				}
 			}
-			THIS.bindUserEvent();
+		});
+		
+		THIS.socket.on('update_chat', function (data) {	
+			THIS.logging("update_chat :" +  data);
+			THIS.appendMsg(data);
+			THIS.txt_ChatMsg.focus();
 		});
 		
 		THIS.socket.on('update_points', function (data) {
@@ -306,12 +338,6 @@ socialChat.prototype = {
 				}
 			}
 		});
-		
-		THIS.socket.on('update_chat', function (data) {	
-			THIS.logging("update_chat :" +  data);	
-			THIS.appendMsg(data);
-			THIS.txt_ChatMsg.focus();
-		});		
 		
 		THIS.socket.on('update_drowStart', function (data) {
 			if (data && data.id) {
@@ -325,8 +351,8 @@ socialChat.prototype = {
 							user.pen = new GraphicPen( THIS.panel_Canvas[0] );
 						}
 						
-						user.pen.option.lineColor = data.color
-	    				user.pen.moveTo( {x:user.point_x, y:user.point_y} );
+						user.pen.option.lineColor = data.color;
+						user.pen.moveTo( {x:user.point_x, y:user.point_y} );
 					}
 				}
 			}
@@ -383,6 +409,7 @@ socialChat.prototype = {
 	},
 	
 	showUserList : function(user) {
+		var THIS = this;
 		if (user && user.id) {
 			if (user.color == "") {
 				user.color = this.defaultColor;
@@ -393,41 +420,45 @@ socialChat.prototype = {
 				this.currentUser = user;
 				isCurrentUser = true;
 			}
-			
-			var userPanel = "<li id='u"+ user.id +"' sessionName='"+ user.name +"'class='list-group-item"+ (isCurrentUser ? " active" : "") +"'>"
-				+"<span class='color-picker' style='display:inline-block;width:20px;height:20px;background-color:"+ user.color +";border:1px solid #000;margin-right:7px;'>&nbsp;</span>"
-				+"<span class='badge'>"+ user.count +"</span>"+ user.name 
-				+"</li>";
-			this.panel_UserName.append(userPanel);
-			this.drowUserMousePoint(user);
-			
 			if (isCurrentUser) {
-				this.panel_PenColor[0].style.backgroundColor = user.color;
+				this.panel_PenColor.css("backgroundColor", user.color);
 			}
-		}
-	},
-	bindUserEvent : function() {
-		var THIS = this,
-			items= this.panel_UserName.find("li"),
-			item = this.panel_UserName.find("li[sessionName='"+ THIS.currentUser.name +"'] span.color-picker");
-		
-		if (items && items.length > 0)	{
-			items.find("li").click(function(e) {
-				if (e && e.currentTarget) {
-					var o = $(e.currentTarget),
-						n = o.attr("sessionName");
-					if (n && n != "" && THIS.currentUser && THIS.currentUser.name != n) {
-						THIS.txt_SelectUser.val(o.attr("sessionName"));
+			
+			var userPicker,
+				userPanel = this.panel_UserName.find("li[session-id='"+ user.id +"']");
+				
+			if (userPanel.length == 0) {
+				userPanel = this.panel_Template.find("[tmpl-id='user-item']").clone();
+				userPanel.append(user.name)
+						 .attr("session-id", user.id)
+						 .attr("session-name", user.name)
+				;
+				userPanel.click(function (e) {
+					e = (e || event);
+					if (e && e.currentTarget) {
+						var o = $(e.currentTarget),
+							u = o.attr("session-id"),
+							n = o.attr("session-name");
+						if (n && n != "" && THIS.currentUser && THIS.currentUser.id != u) {
+							THIS.txt_SelectUser.val(n);
+						}
 					}
+				});
+				if (isCurrentUser) {
+					userPanel.addClass("active");
 				}
-			});
-		}
-		
-		if (item && item.length > 0) {
-			// Set ColorPicker.
-			this.setColorPicker(item);
+				this.panel_UserName.append(userPanel);
+				
+				// Set ColorPicker.
+				this.setColorPicker(userPanel.find("span.color-picker"));
+			}
+			userPanel.find("span.badge").empty().append(user.count);
+			userPanel.find("span.color-picker").css("backgroundColor", user.color);
+			
+			this.drowUserMousePoint(user);
 		}
 	},
+
 	drowUserMousePoint : function(user) {
 		if (user && user.id) {
 			if (user.point_x > 0 || user.point_y > 0) {
@@ -436,18 +467,15 @@ socialChat.prototype = {
 				var userLabId = "uLab_"+ user.id,
 					userLable = $("#uLab_"+ user.id);
 				if (userLable.length > 0) {
-					userLable.css('top', (user.point_y + 38))
-							 .css('left',(user.point_x + 18))
-							 .find('span')
-							 .css('background', user.color);
+					userLable.css('top', (user.point_y + 36))
+							 .css('left',(user.point_x + 20))
+							 .find('span.label').css('background', user.color);
 				}
 				else {
-					var lable = '<div '
-					+ 'id="'+ userLabId +'" '
-					+ 'style="position:absolute;top:-100px;left:-100px;z-index:100;">'
-					+ '<span class="label" style="background-color:'+ user.color +';border:1px solid #fff;">'+ user.name +'</span>'
-					+ '</div>';	
-					this.panel_UserPoint.append(lable);
+					userLable = this.panel_Template.find("[tmpl-id='panel-userPoint']").clone();
+					userLable.attr("id", userLabId)
+							 .find("span.label").css("background", user.color).text(user.name);
+					this.panel_UserPoint.append(userLable);
 				}
 			}
 		}
