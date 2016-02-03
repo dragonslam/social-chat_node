@@ -114,9 +114,9 @@ io.sockets.on('connection', function (socket) {
 	
 	//synchroniz Point
 	socket.on ('sync_point' , function (data) {
-		logging("dbug", "[sync_point] "+ data.name +"/["+data.point_x+"/"+data.point_y+"]" );	
+		//logging("dbug", "[sync_point] "+ data.name +"/["+data.point_x+"/"+data.point_y+"]" );	
 		
-		if (sessions.find( session.id ) != null ){
+		if (sessions.find( data.id ) != null ){
 			session.point_x = data.point_x;
 			session.point_y = data.point_y;
 			io.sockets.emit('update_points' , {peers: sessions.list} );
@@ -125,9 +125,9 @@ io.sockets.on('connection', function (socket) {
 	
 	//drow start 
 	socket.on ('drow_start' , function (data) {
-		logging("dbug", "[drow_start] "+ data.name +"/["+data.point_x+"/"+data.point_y+"]" );	
+		//logging("dbug", "[drow_start] "+ data.name +"/["+data.point_x+"/"+data.point_y+"]" );	
 		
-		if (sessions.find( session.id ) != null ){
+		if (sessions.find( data.id ) != null ){
 			session.point_x = data.point_x;
 			session.point_y = data.point_y;
 			io.sockets.emit('update_drowStart' , session );
@@ -136,9 +136,9 @@ io.sockets.on('connection', function (socket) {
 	
 	//drow line 
 	socket.on ('drow_line' , function (data) {
-		logging("dbug", "[drow_line] "+ data.name +"/["+data.point_x+"/"+data.point_y+"]" );	
+		//logging("dbug", "[drow_line] "+ data.name +"/["+data.point_x+"/"+data.point_y+"]" );	
 		
-		if (sessions.find( session.id ) != null ){
+		if (sessions.find( data.id ) != null ){
 			session.point_x = data.point_x;
 			session.point_y = data.point_y;
 			io.sockets.emit('update_drowLine' , session );
