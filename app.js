@@ -151,9 +151,8 @@ io.sockets.on('connection', function (socket) {
 		
 		if (sessions.find( session.id ) != null ){	
 			io.sockets.emit('update_chat' , session.name +" is out."  );
+			io.sockets.emit('disconnect_user', session );
 			sessions.delete(session);
-			io.sockets.emit('update_users' , {peers: sessions.list} );
-			
 			current--;
 		}
 	});	

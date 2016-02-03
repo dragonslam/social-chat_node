@@ -375,10 +375,16 @@ socialChat.prototype = {
 		
 		THIS.socket.on("disconnect" , function () {	
 			THIS.logging( "disconnected server." );
-			THIS.panel_UserName.html("");		
-			THIS.txt_UserName.attr("readonly", false);
+			THIS.deleteUser(THIS.currentUser);
 			THIS.socket = undefined;
 			THIS.isCon = false;
+		});
+		
+		THIS.socket.on("disconnect_user", function(data) {
+			if (data && data.id) {
+				THIS.logging( "disconnect user." );
+				THIS.deleteUser(data);
+			}
 		});
 	
 		THIS.showObject(THIS.btn_Connect, false);
@@ -444,18 +450,34 @@ socialChat.prototype = {
 						}
 					}
 				});
-				if (isCurrentUser) {
-					userPanel.addClass("active");
-				}
 				this.panel_UserName.append(userPanel);
 				
-				// Set ColorPicker.
-				this.setColorPicker(userPanel.find("span.color-picker"));
+				if (isCurrentUser) {
+					userPanel.addClass("active");
+					// Set ColorPicker.
+					this.setColorPicker(userPanel.find("span.color-picker"));
+				}
 			}
 			userPanel.find("span.badge").empty().append(user.count);
 			userPanel.find("span.color-picker").css("backgroundColor", user.color);
 			
 			this.drowUserMousePoint(user);
+		}
+	},
+	
+	deleteUser : function(user) {
+		if (user && user.id) {
+			
+			if (user.id == this.currentUser.id) {
+				this.panel_UserName.empty();
+				this.panel_UserPoint.empty();
+				this.txt_UserName.val("").attr("readonly", false);
+				$("div.colorpicker").remove();
+			}
+			else {
+				this.panel_UserName.find("li[session-id='"+ user.id +"']").remove();
+				this.panel_UserPoint.find("#uLab_"+ user.id).remove();	
+			}
 		}
 	},
 
@@ -467,8 +489,8 @@ socialChat.prototype = {
 				var userLabId = "uLab_"+ user.id,
 					userLable = $("#uLab_"+ user.id);
 				if (userLable.length > 0) {
-					userLable.css('top', (user.point_y + 36))
-							 .css('left',(user.point_x + 20))
+					userLable.css('top', (user.point_y + 33))
+							 .css('left',(user.point_x + 22))
 							 .find('span.label').css('background', user.color);
 				}
 				else {
